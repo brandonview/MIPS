@@ -1,0 +1,387 @@
+# 
+
+.globl main
+.data
+	exit_code: .word 0
+	
+	.align 5			# give 32 bits for every element of the array to be initialized
+	array_start: .asciiz "Joe"		# The first index of the array contains the string "Joe"
+	.align 5
+	.asciiz "Jenny"
+	.align 5
+	.asciiz "Jill"
+	.align 5
+	.asciiz "John"
+	.align 5
+	.asciiz "Jeff"
+	.align 5
+	.asciiz "Joyce"
+	.align 5
+	.asciiz "Jerry"
+	.align 5
+	.asciiz "Janice"
+	.align 5
+	.asciiz "Jake"
+	.align 5
+	.asciiz "Jonna"
+	.align 5
+	.asciiz "Jack"
+	.align 5
+	.asciiz "Jocelyn"
+	.align 5
+	.asciiz "Jessie"
+	.align 5
+	.asciiz "Jess"
+	.align 5
+	.asciiz "Janet"
+	.align 5
+	.asciiz "Jane"
+	.align 5
+	
+	size: .word 16				# store variable for size of the array as 16
+	
+	data: .space 64				# create variable data 16 words long to hold all ptrs in the array
+	
+	init_text_data: .asciiz "Initial array is: \n"
+	init_text: .word init_text_data
+	
+	finish_text_data: .asciiz "\nQuick sort is finished! \n"
+	finish_text: .word finish_text_data
+	
+	newline_data: .asciiz "\n"
+	newline: .word newline_data
+	
+.text
+main:
+	la $t1, array_start			# start addr of array is loaded into $t1
+	la $t2, data				# start addr of data is loaded into $t2
+	
+	# Initialize space allocated for data array with pointers to all elements (names) in memory
+	# This can be done in a loop, I will try this maybe
+	sw $t1, 0($t2)				# the address contained at $t1 is stored at whatever address 0($t2) represents
+	# store the rest of the addresses of array elements into the data var according to offests
+	la $t1, 32($t1)				# offset addr contained by $t1 by 32 to get to next array element
+	sw $t1, 4($t2)
+	# do this a bunch of times for the rest of the array elements
+	la $t1, 32($t1)				# offset addr contained by $t1 by 32 to get to next array element
+	sw $t1, 8($t2)
+	la $t1, 32($t1)				# offset addr contained by $t1 by 32 to get to next array element
+	sw $t1, 12($t2)
+	la $t1, 32($t1)				# offset addr contained by $t1 by 32 to get to next array element
+	sw $t1, 16($t2)
+	la $t1, 32($t1)				# offset addr contained by $t1 by 32 to get to next array element
+	sw $t1, 20($t2)
+	la $t1, 32($t1)				# offset addr contained by $t1 by 32 to get to next array element
+	sw $t1, 24($t2)
+	la $t1, 32($t1)				# offset addr contained by $t1 by 32 to get to next array element
+	sw $t1, 28($t2)
+	la $t1, 32($t1)				# offset addr contained by $t1 by 32 to get to next array element
+	sw $t1, 32($t2)
+	la $t1, 32($t1)				# offset addr contained by $t1 by 32 to get to next array element
+	sw $t1, 36($t2)
+	la $t1, 32($t1)				# offset addr contained by $t1 by 32 to get to next array element
+	sw $t1, 40($t2)
+	la $t1, 32($t1)				# offset addr contained by $t1 by 32 to get to next array element
+	sw $t1, 44($t2)
+	la $t1, 32($t1)				# offset addr contained by $t1 by 32 to get to next array element
+	sw $t1, 48($t2)
+	la $t1, 32($t1)				# offset addr contained by $t1 by 32 to get to next array element
+	sw $t1, 52($t2)
+	la $t1, 32($t1)				# offset addr contained by $t1 by 32 to get to next array element
+	sw $t1, 56($t2)
+	la $t1, 32($t1)				# offset addr contained by $t1 by 32 to get to next array element
+	sw $t1, 60($t2)
+	
+			
+	# debug hack to print the name located in address contained by $t2 and whatever offset (according to array stuff)
+	# uncomment next two lines to test stuff
+
+	# la $t0, 56($t2)			# the addr held as a value in $t2 is copied to $t0
+	# lw $a0, 0($t0)			# $t1 passed as an addr. The thing stored at that addr is loaded into $a0
+	
+	la $t0, init_text			# the addr held as a value in init_text is copied to $t0
+	lw $a0, 0($t0)				# $t1 passed as an addr. The thing stored at that addr is loaded into $a0
+	jal print_string			# printf("Initial array is:\n");
+	sw $v0, exit_code			# save return value from $v0 to variable in data
+	
+	# print_array(data, size)		# THIS IS WORKING DO NOT CHANGE THIS
+	la $t0, data
+	lw $a0, 0($t0)
+	la $t0, size
+	lw $a1, 0($t0)
+	jal print_array
+	sw $v0, exit_code
+	
+	# quicksort(data, zero, size -1)
+	la $a0, data
+	move $a1, $zero
+	lw $a2, size
+	addi $a2, $a2, -1
+	jal quicksort
+	
+	# printf("Quick sort is finished!\n");
+	la $t0, finish_text			# the addr held as a value in init_text is copied to $t0
+	lw $a0, 0($t0)				# $t1 passed as an addr. The thing stored at that addr is loaded into $a0
+	jal print_string			# printf("Initial array is:\n");
+	sw $v0, exit_code			# save return value from $v0 to variable in data
+	
+	# print_array(data, size)		# THIS IS WORKING DO NOT CHANGE THIS
+	la $t0, data
+	lw $a0, 0($t0)
+	la $t0, size
+	lw $a1, 0($t0)
+	jal print_array
+	sw $v0, exit_code
+
+	# exit	
+	sw $zero, exit_code			# return 0	
+	li $v0, 10				# 10 is syscall number for exit
+	syscall
+	
+quicksort:					# void quicksort(char * a, int first, int last)
+	# Here goes nothing
+	# Registers to use: $t4, $t5, $t6, $t7			NOTE: I don't think this is important or right, most likely ignoring this comment
+	# quicksort needs three arguments stored on the call frame, ptr to first element of the array, index of first element, index of last element)
+	# Should also store the return adress in the call frame since this is a recursive function that does crazy stuff
+	# will also store local variable x (pivot) and t (temp var used to swap array values) in the call frame 
+	# requires that char * a is in $a0, int first is in $a1, and int last is in $a2
+	
+	addi $sp, $sp, -32			# add call frame for 5 arguments
+	sw $ra, 0($sp)				# store return address as arg0 in the call frame
+	sw $a0, 4($sp)				# store char * a as arg1 in the call frame
+	sw $a1, 8($sp)				# i = first
+	sw $a2, 12($sp)				# j = last
+	# 16($sp) is to be used for the address of a[(first - last) / 2]
+	# 20($sp) is to be used for a temporary variable if needed
+	# I am not sure if I will ever need to store a temp variable in the stack
+	sw $a1, 24($sp)				# initial first
+	sw $a2, 28($sp)				# initial last
+	# DO NOT EVER CHANGE THE VALUES OF 24($sp) and 28($sp)!!!!!! They are a reference value
+	
+	add $t4, $a1, $a2			# x = first + last		use $t4 as (first+last)/2
+	div $t4, $t4, 2			# x = (first + last) / 2
+	# for (int c = 0; c < (first+last)/2; i++)
+	addi $t5, $zero, 0				# c = 0;
+	lw $t6, 4($sp)				# t1 = addr of start of data
+	set_x_loop:				# x = a[(first + last) / 2]	stored in $t4
+		beq $t4, $t5, end_set_x_loop	# This Line was added so that the code would work when (first + last)/2 == 0
+		la $t6, 4($t6)			# offset addr contained by $t6 by 32 to get to next pointer to next array element
+		addi $t5, $t5, 1		# c++
+		bne $t4, $t5, set_x_loop	# break at c = (first+last)/2
+	end_set_x_loop:
+	sw $t6, 16($sp)				# x = a[(first + last) / 2]   FINAL STEP
+
+	infinite_loop:				# for(;;)
+		# while str_lt(a[i], x) i++;
+		lw $t5, 8($sp)		# use $t5 as var i		REMEMBER TO CHANGE VALUE IN CALL FRAME AT END OF LOOP
+		loop1:
+			# Use the previous set_x_loop with a few changes in how it's initialized to get a[i]
+			addi $t4, $zero, 0	# use t4 as counter starts at = 0
+			lw $t6, 4($sp)				# t6 = addr of start of data
+			set_a1_loop1:
+				beq $t4, $t5, end_set_a1_loop1
+				la $t6, 4($t6)
+				addi $t4, $t4, 1
+				bne $t4, $t5, set_a1_loop1
+			end_set_a1_loop1:
+			
+			# initialize function arg registers to call str_lt
+			lw $a0, 0($t6)		# $a0 = a[i]
+			lw $a1, 16($sp)		# $a1 = x
+			lw $a1, 0($a1)
+			# str_lt(a[i], x)
+			jal str_lt		# str_lt(a[i], x)
+			beqz $v1,  end_loop1	# This line added here so that code would work if need to break when i == 0 w/out incrementing
+			addi $t5, $t5, 1	# i++	
+			la $t6, 4($t6)
+			bnez $v1, loop1		# repeat loop1 if str_lt returns true
+		end_loop1:
+			sw $t5, 8($sp)		# store new value of i on stack
+			
+			
+		lw $t5, 12($sp)		# use $t5 as var j		REMEMBER TO CHANGE VALUE IN CALL FRAME AT END OF LOOP
+		loop2:
+			# Use the previous set_x_loop with a few changes in how it's initialized to get a[i]
+			addi $t4, $zero, 0	# use t4 as counter starts at = 0
+			lw $t6, 4($sp)				# t6 = addr of start of data
+			set_a1_loop2:
+				beq $t4, $t5, end_set_a1_loop2
+				la $t6, 4($t6)
+				addi $t4, $t4, 1
+				bne $t4, $t5, set_a1_loop2
+			end_set_a1_loop2:
+				
+			# initialize function arg registers to call str_lt
+			lw $a0, 16($sp)		# $a0 = x
+			lw $a0, 0($a0)
+			lw $a1, 0($t6)		# $a1 = a[j]
+			# str_lt(x, a[j])
+			jal str_lt		# str_lt(x, a[j])
+			beqz $v1,  end_loop2	# This line added here so that code would work if need to break when j == 0 w/out incrementing
+			addi $t5, $t5, -1	# j--	
+			la $t6, 32($t6)
+			bnez $v1, loop2	# repeat loop2 if str_lt returns true	
+		end_loop2:
+			sw $t5, 12($sp)		# store new value of j on stack
+			
+			
+		# if (i >= j) break;
+		lw $t4, 8($sp)			# i
+		lw $t5, 12($sp)			# j
+		bge $t4, $t5, end_infinite_loop		# if (i >= j) break;
+		
+		# t = a[i]; a[i] = a[j]; a[j] = t;
+		
+		# first, get the values of addresses offset from var data so that I put the values just obtained into the others' former index, swapping them
+		# I hope that comment makes sense in the morning
+		# first get address of a[i]
+		lw $t5, 8($sp)		# use $t5 as var i
+		# Use the previous set_x_loop with a few changes in how it's initialized to get a[i]
+		addi $t4, $zero, 0	# use t4 as counter starts at = 0
+		lw $t6, 4($sp)				# t6 = addr of start of data
+		set_ai_addr_loop:
+			beq $t4, $t5, end_set_ai_addr_loop
+			la $t6, 4($t6)
+			addi $t4, $t4, 1
+			bne $t4, $t5, set_ai_addr_loop
+		end_set_ai_addr_loop:
+		move $t7, $t6		# put address of a[i] in $t7
+		# NOTE: $t7 now is the address that contains value $t1
+		# For the swap to occur, $t7 should hold value $t2
+		
+		# put address of a[j] in $t6
+		lw $t5, 12($sp)		# use $t5 as var j
+		# Use the previous set_x_loop with a few changes in how it's initialized to get a[i]
+		addi $t4, $zero, 0	# use t4 as counter starts at = 0
+		lw $t6, 4($sp)				# t6 = addr of start of data
+		set_aj_addr_loop:
+			beq $t4, $t5, end_set_aj_addr_loop
+			la $t6, 4($t6)
+			addi $t4, $t4, 1
+			bne $t4, $t5, set_aj_addr_loop
+		end_set_aj_addr_loop:
+		# NOTE: $t6 now is the address that contains value $t2
+		# For the swap to occur, $t6 should hold value $t1
+		
+		
+		# Now, get the values to be swapped at the indexes previously found
+		lw $t1, 0($t7)
+		lw $t2, 0($t6)
+		
+		# Now, swap
+		sw $t1, 0($t6)
+		sw $t2, 0($t7)
+		
+		# i++
+		lw $t3, 8($sp)
+		addi $t3, $t3, 1
+		sw $t3, 8($sp)
+		
+		# j--
+		lw $t3, 12($sp)
+		addi $t3, $t3, -1
+		sw $t3, 12($sp)
+		
+		j infinite_loop
+		
+			
+	end_infinite_loop:
+	
+	# if(first < i-1) quicksort( a, first, i-1 );
+	lw $t1, 24($sp)
+	lw $t2, 8($sp)
+	addi $t2, $t2, -1
+	bge $t1, $t2, skip_qs1		# if first is not less than i-1, skip next call to quick sort
+	# set up args for quicksort to use
+	lw $a0, 4($sp)
+	move $a1, $t1
+	move $a2, $t2
+	jal quicksort
+	skip_qs1:
+	
+	# if(j+1 < last) quicksort( a, j+1, last );
+	lw $t1, 12($sp)
+	addi $t1, $t1, 1
+	lw $t2, 28($sp)
+	bge $t1, $t2, skip_qs2		# if j+1 not less than last, skip next call to quick sort
+	# set up args for quicksort to use
+	lw $a0, 4($sp)
+	move $a1, $t1
+	move $a2, $t2
+	jal quicksort
+	skip_qs2:
+
+	lw $ra, 0($sp)			# restore return address
+	addi $sp, $sp, 32		# release call frame from stack	
+	jr $ra				# return to the caller
+	
+
+print_integer:
+	# requires that int to print is already n $a0
+	li $v0, 1				# load print_int syscall number into $v0
+	syscall					# reads from $v0 to determine what call to make
+	li $v0, 0				# load 0 for return value on success
+	jr $ra
+
+print_string:
+	# requires that address for string to print is already in $a0
+	li $v0, 4				# load print_str syscall number into $v0
+	syscall					# reads from $v0 to determine what call to make
+	li $v0, 0				# load 0 for return value on success
+	jr $ra
+	
+print_array:					# THIS IS WORKING DO NOT CHANGE THIS
+	# requires that the address of the first element of the array is in $a0
+	# requires that the address pointing to the size of the array is in $a1
+	li $v0, 4				# load print_str syscall number into $v0
+	
+	#use $t3 as var i for iterating through array
+	addi $t3, $zero, 0			# i = 0
+	la $t4, data
+	print_array_loop:
+		lw $a0, 0($t4)			# offset addr contained by $a0 by 32 to get to next pointer to next array element
+		syscall
+		lw $a0, newline
+		syscall
+		addi $t3, $t3, 1		# i++
+		addi $t4, $t4, 4
+		bne $t3, $a1, print_array_loop		# goto loop if i != size
+		# BUG: This doesn't work if size == 0, would need a beq to end_loop at beginning instead
+		# FIX THIS
+		# later
+	
+	jr $ra
+	
+str_lt:						# UNTESTED.  But it assembles so whatever
+	# requires that address of first string (*x) is located in $a0
+	# requires that address of second string (*y) is located in $a1
+	# return value will be stored in $v1
+	move $t0, $a0
+	move $t1, $a1
+
+	 str_lt_for_loop:
+	 	lb $t2, 0($t0)				# *x	load into $t2, the thing contained in addr that $t0 was storing
+	 	lb $t3, 0($t1)				# *y
+	 	
+	 	beq $t2, $zero, str_lt_for_exit		# *x != '\0'
+	 	beq $t3, $zero, str_lt_for_exit		# *y != '\0'
+	 	
+	 	blt $t2, $t3, return_one		# if (*x < *y) return 1;
+	 	blt $t3, $t2, return_zero		# if (*y < *x) return 0;
+	 	
+	 	addi $t0, $t0, 1			#x++
+	 	addi $t1, $t1, 1			#y++
+	 	b str_lt_for_loop			# GOTO beginning of loop
+	 	
+	 str_lt_for_exit:				# code for after the for loop exits
+	 	beq $t3, $zero, return_zero		# if ( *y == '\0' ) return 0;
+	 	b return_one				# else return 1;
+	 	
+	 return_zero:					# return 0;
+	 	addi $v1, $zero, 0			# set return value to 0
+	 	jr $ra					# return
+	 return_one:					# return 1;
+	 	addi $v1, $zero, 1			# set return value to 1
+	 	jr $ra					# return
+	 	
+	
