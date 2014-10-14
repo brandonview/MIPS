@@ -1,0 +1,102 @@
+# int fact (int n)
+# {
+#	if (n == 0) return (1);
+#	else return (n * fact(n - 1));
+#}
+
+.globl main
+.data
+	exit_code: .word 0
+	number: .word 0			# int number;
+	str: .word str_data
+	str_data: .asciiz "Hello world!"
+	prompt_message: .word prompt_data
+	prompt_data: .asciiz "Positive Integer: "
+	value_message: .word value_message_data
+	value_message_data: .asciiz "The value of 'factorial("
+	is: .word string_is
+	string_is: .asciiz ")' is: "
+.text
+main:
+	#printf("Positive integer: ")
+	la $t0, prompt_message		# load address from prompt_mesage into local register
+	lw $a0, 0($t0)			# load value of what address in $t0 was for into $a0
+	jal print_string		# printf("Positive integer: "
+	sw $v0, exit_code		# save return value from $v0 to variable in data
+	
+	# scanf("%d", &number);
+	jal read_integer		# call read_integer
+	addi $sp, $sp, 4		# release space used on the stack for $ra
+	sw $v0, number			# save return value from $v0 to variable in data
+	
+	# printf("The value of 'factorial(%d)' is:  %d\n", number, factorial(number));
+	la $t0, value_message		# load address from prompt_mesage into local register
+	lw $a0, 0($t0)			# load value of what address in $t0 was for into $a0
+	jal print_string		# print the message: "The value of 'factorial("
+	sw $v0, exit_code		# save return value from $v0 to variable in data
+	
+	lw $a0, number			# set $a0 equal to the number to calculate fact for
+	jal print_integer		# print the value of the number to solve for factorial
+	sw $v0, exit_code		# save return value from $v0 to variable in data
+
+	la $t0, is			# load address from prompt_mesage into local register
+	lw $a0, 0($t0)			# load value of what address in $t0 was for into $a0
+	jal print_string		# print the message: "The value of 'factorial("
+	sw $v0, exit_code		# save return value from $v0 to variable in data
+	
+	# factorial(number)
+	lw $a0, number			# load the value of "number" into $a0
+	jal fact			# factorial(number)
+	move $a0, $v0			# move $v0 into $a0
+	jal print_integer
+	
+	
+	# exit	
+	sw $zero, exit_code		# return 0	
+	li $v0, 10			# 10 is syscall number for exit
+	syscall
+	jr $ra				# not sure if this will ever get called
+	
+print_integer:
+	# requires that int to print is already n $a0
+	li $v0, 1			# load print_int syscall number into $v0
+	syscall				# reads from $v0 to determine what call to make
+	li $v0, 0			# load 0 for return value on success
+	jr $ra
+
+print_string:
+	# requires that address for string to print is already n $a0
+	li $v0, 4			# load print_str syscall number into $v0
+	syscall				# reads from $v0 to determine what call to make
+	li $v0, 0			# load 0 for return value on success
+	jr $ra
+	
+read_integer:
+	li $v0, 5		# The read_int system call is number 5 in the table
+	syscall
+	jr $ra
+fact:					# int factorial(int x) {
+# assumes that the value for x is stored in $a0
+	addi $sp, $sp, -8		# add call frame for two arguments
+	sw $ra, 4($sp)			# store value for $ra in call frame
+	sw $a0, 0($sp)			# store value for n in the stack pointer
+	
+	beq $a0, $zero, L1		# if (x == 0) GOTO L1	// which will return 1
+	
+	# else 
+	addi $a0, $a0, -1		# set arg x to x - 1
+	jal fact			# call fact with (x - 1)
+	
+	# fact returns here
+	lw $a0, 0($sp)			# return from jal, restore arg x
+	lw $ra, 4($sp)			# restore return address
+	addi $sp, $sp, 8		# release call frame from stack
+	#return the value of x * last_return_value (which should be fact(x - 1)
+	mul $v0,$a0, $v0		# return (n* fact(n - 1))
+	
+	jr $ra				# return to the caller
+	
+L1:					# return 1
+	addi $v0, $zero, 1		# set return value to 1
+	addi $sp, $sp, 8		# release call frame from stack
+	jr $ra				# return to caller
